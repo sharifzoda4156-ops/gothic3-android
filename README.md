@@ -17,7 +17,9 @@ This is NOT the earlier HD patch. HD renderer support and 4x art remain separate
 
 ## Local private Android build
 
-Requirements: Git, Python 3, Bash, JDK 21, Android SDK 36 (compatibility override; upstream expects SDK 37), Android NDK 29.0.14206865, and the normal Gradle dependencies.
+Requirements: Git, Python 3, Bash, JDK 21, Android SDK platform `platforms;android-37.0` (compileSdk 37), Android NDK 29.0.14206865, and the normal Gradle dependencies.
+
+Install the pinned Android SDK packages with `sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0' 'ndk;29.0.14206865'`.
 
 From the root of this repository, execute:
 

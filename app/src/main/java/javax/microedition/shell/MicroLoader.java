@@ -68,6 +68,7 @@ import kotlin.io.ConstantsKt;
 import kotlin.io.FilesKt;
 import ru.playsoftware.j2meloader.BuildConfig;
 import ru.playsoftware.j2meloader.config.Config;
+import ru.playsoftware.j2meloader.config.GothicProfileDefaults;
 import ru.playsoftware.j2meloader.config.ProfileModel;
 import ru.playsoftware.j2meloader.config.ProfilesManager;
 import ru.playsoftware.j2meloader.config.ShaderInfo;
@@ -98,6 +99,12 @@ public class MicroLoader {
 
 	public boolean init() {
 		File config = new File(workDir + Config.MIDLET_CONFIGS_DIR + appDirName);
+		// Standalone Gothic builds must launch without the emulator's setup wizard.
+		// Do not change normal J2ME Loader's first-launch/configuration behavior.
+		if (!BuildConfig.FULL_EMULATOR && !GothicProfileDefaults.ensure(context, config)) {
+			Log.e(TAG, "Failed to initialize Gothic 3 game profile: " + config);
+			return false;
+		}
 		this.params = ProfilesManager.loadConfig(config);
 		if (params == null) {
 			return false;

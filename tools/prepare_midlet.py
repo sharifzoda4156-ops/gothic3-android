@@ -86,6 +86,14 @@ def prepare(game: Path, checkout: Path):
     upstream_id = 'applicationId "com.example.androidlet.' + '$' + '{apkName.toLowerCase()}"'
     gradle = gradle.replace(upstream_id, 'applicationId "org.gothic3.fanport"', 1)
     gradle_path.write_text(gradle)
+    gradle_props_path = checkout / "gradle.properties"
+    if gradle_props_path.exists():
+        props_text = gradle_props_path.read_text(encoding="utf-8")
+        if "android.overridePathCheck" not in props_text:
+            if not props_text.endswith("\n"):
+                props_text += "\n"
+            props_text += "android.overridePathCheck=true\n"
+            gradle_props_path.write_text(props_text, encoding="utf-8")
     return {
         "sha256": hashlib.sha256(game.read_bytes()).hexdigest(),
         "midlet_class": midlet_class,

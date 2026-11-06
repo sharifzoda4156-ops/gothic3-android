@@ -16,6 +16,14 @@ fi
 git -C "$UPSTREAM" fetch origin "$UPSTREAM_SHA"
 git -C "$UPSTREAM" checkout --detach "$UPSTREAM_SHA"
 git -C "$UPSTREAM" submodule update --init --recursive
+# Android API 37 cannot currently be installed from the stable SDK repository.
+# Use API 36 for a compatibility smoke build; targetSdk remains at upstream's 36.
+ANDROID_API="${GOTHIC_ANDROID_API:-36}"
+if [ "$ANDROID_API" != 36 ] && [ "$ANDROID_API" != 37 ]; then
+  echo "GOTHIC_ANDROID_API must be 36 or 37" >&2
+  exit 2
+fi
+sed -i "s/COMPILE_SDK = 37/COMPILE_SDK = $ANDROID_API/" "$UPSTREAM/build.gradle"
 python3 "$ROOT/tools/prepare_midlet.py" --jar "$GAME_JAR" --upstream "$UPSTREAM"
 cd "$UPSTREAM"
 chmod +x gradlew

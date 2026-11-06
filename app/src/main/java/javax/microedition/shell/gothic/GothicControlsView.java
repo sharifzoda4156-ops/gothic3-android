@@ -232,10 +232,20 @@ public final class GothicControlsView extends View {
             bounds.set(x - r * .88f, y - r * .88f, x + r * .88f, y + r * .88f);
             paint.setColor(0x55FFD096);
             paint.setStyle(Paint.Style.FILL);
-            canvas.drawArc(bounds, angle - 23f, 46f, true, paint);
+            boolean diagonal = directionKey == '1' || directionKey == '3'
+                    || directionKey == '7' || directionKey == '9';
+            // Diagonals illuminate both adjacent cardinal sectors.
+            float start = diagonal ? angle - 45f : angle - 23f;
+            float sweep = diagonal ? 90f : 46f;
+            canvas.drawArc(bounds, start, sweep, true, paint);
             line.setColor(AMBER);
             line.setStrokeWidth(dp(3.4f));
-            canvas.drawArc(bounds, angle - 21f, 42f, false, line);
+            if (diagonal) {
+                canvas.drawArc(bounds, angle - 43f, 40f, false, line);
+                canvas.drawArc(bounds, angle + 3f, 40f, false, line);
+            } else {
+                canvas.drawArc(bounds, angle - 21f, 42f, false, line);
+            }
         }
 
         line.setColor(directionKey == 0 ? 0xFF907553 : AMBER);
@@ -245,8 +255,14 @@ public final class GothicControlsView extends View {
             float angle = (float) (i * Math.PI / 4);
             float px = x + (float) Math.cos(angle) * chevronR;
             float py = y + (float) Math.sin(angle) * chevronR;
-            line.setColor(directionKey != 0 && directionAngle(directionKey) == i * 45f
-                    ? AMBER : 0xFF876C4F);
+            float activeAngle = directionAngle(directionKey);
+            boolean adjacent = directionKey == '1' || directionKey == '3'
+                    || directionKey == '7' || directionKey == '9';
+            boolean activeDot = directionKey != 0
+                    && (activeAngle == i * 45f
+                        || (adjacent && Math.abs((i * 45f - activeAngle + 360f) % 360f - 45f) < .01f)
+                        || (adjacent && Math.abs((activeAngle - i * 45f + 360f) % 360f - 45f) < .01f));
+            line.setColor(activeDot ? AMBER : 0xFF876C4F);
             canvas.drawCircle(px, py, dp(1.8f), paintColor(line.getColor()));
         }
 

@@ -37,6 +37,22 @@ public class HdRoutingTest {
             count++;
         }
         byte[] hero = Files.readAllBytes(resources.resolve("105.png"));
+        Image rawPunch = Image.createImage("/hd/120.png");
+        Image fixedPunch = GothicAssets.sized("/hd/120.png", 136, 112);
+        int[] rawPixels = new int[136 * 112], fixedPixels = new int[136 * 112];
+        rawPunch.getRGB(rawPixels, 0, 136, 0, 0, 136, 112);
+        fixedPunch.getRGB(fixedPixels, 0, 136, 0, 0, 136, 112);
+        int changed = 0;
+        for (int i = 0; i < rawPixels.length; i++) {
+            check((rawPixels[i] >>> 24) == (fixedPixels[i] >>> 24), "punch alpha changed");
+            if (rawPixels[i] != fixedPixels[i]) {
+                changed++;
+                check((fixedPixels[i] >> 16 & 255) <= (rawPixels[i] >> 16 & 255), "skin red brightened");
+                check((fixedPixels[i] >> 8 & 255) <= (rawPixels[i] >> 8 & 255), "skin green brightened");
+                check((fixedPixels[i] & 255) <= (rawPixels[i] & 255), "skin blue brightened");
+            }
+        }
+        check(changed > 100 && changed < 3000, "punch adjustment coverage " + changed);
         int variants = 0;
         java.lang.reflect.Method load = HdVar.class.getDeclaredMethod("load", String.class, int.class, int.class);
         load.setAccessible(true);

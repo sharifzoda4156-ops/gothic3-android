@@ -93,12 +93,74 @@ public final class GothicAssets {
                 report("rejected dimensions " + path, true);
                 return null;
             }
+            if ("/hd/120.png".equals(path) && width == 136 && height == 112) {
+                if (isKnownPunchSheet()) image = normalizePunchSkin(image);
+                else report("punch sheet changed; skin correction skipped", true);
+            }
             report("HD " + path, false);
             return image;
         } catch (IOException e) {
             report("missing or invalid " + path, true);
             return null;
         }
+    }
+
+    // A replacement HD atlas can reuse the same dimensions with new poses. Do
+    // not apply coordinates/color corrections to art they were not made for.
+    private static boolean isKnownPunchSheet() {
+        try (InputStream stream = GothicAssets.class.getResourceAsStream("/hd/120.png")) {
+            if (stream == null) return false;
+            MessageDigest sha = MessageDigest.getInstance("SHA-256");
+            byte[] buffer = new byte[8192];
+            int count;
+            while ((count = stream.read(buffer)) != -1) sha.update(buffer, 0, count);
+            StringBuilder result = new StringBuilder(64);
+            for (byte value : sha.digest()) {
+                result.append(Character.forDigit((value >>> 4) & 15, 16));
+                result.append(Character.forDigit(value & 15, 16));
+            }
+            return result.toString().equals("86509132fcca0964fd6f6939d7bbb9543ccff0bfe280db9b21c7d773279edb3e");
+        } catch (IOException | NoSuchAlgorithmException e) {
+            return false;
+        }
+    }
+
+    // Coordinates refer to the existing 2x atlas. Restrict the adjustment to
+    // face/hand areas so armor, clothing, equipment and alpha remain intact.
+    private static Image normalizePunchSkin(Image image) {
+        int width = image.getWidth(), height = image.getHeight();
+        int[] pixels = new int[width * height];
+        image.getRGB(pixels, 0, width, 0, 0, width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                boolean face = in(x, y, 11, 3, 22, 15) || in(x, y, 47, 3, 59, 15)
+                        || in(x, y, 79, 3, 92, 15) || in(x, y, 114, 3, 125, 15)
+                        || in(x, y, 12, 42, 23, 54) || in(x, y, 45, 42, 56, 54)
+                        || in(x, y, 85, 42, 96, 54);
+                boolean fist = in(x, y, 4, 13, 13, 23) || in(x, y, 17, 16, 26, 25)
+                        || in(x, y, 36, 13, 45, 23) || in(x, y, 48, 19, 59, 27)
+                        || in(x, y, 86, 27, 96, 36) || in(x, y, 97, 23, 105, 31)
+                        || in(x, y, 112, 22, 120, 31) || in(x, y, 120, 22, 130, 31)
+                        || in(x, y, 0, 50, 10, 61) || in(x, y, 31, 49, 41, 60)
+                        || in(x, y, 65, 49, 74, 60) || in(x, y, 83, 61, 93, 71)
+                        || in(x, y, 8, 42, 13, 48) || in(x, y, 73, 81, 79, 89);
+                if (!face && !fist) continue;
+                int i = y * width + x, color = pixels[i];
+                int a = color >>> 24, r = color >>> 16 & 255, g = color >>> 8 & 255, b = color & 255;
+                // Select warm, illuminated skin. Dark contours and neutral armor stay as they are.
+                if (a == 0 || r <= 115 || g <= 75 || b <= 30 || r <= g + 5 || g <= b + 5
+                        || g * 100 < r * 52) continue;
+                int nr = face ? (r * 92 / 100 + 5) : (r * 80 / 100 + 10);
+                int ng = face ? (g * 84 / 100 + 5) : (g * 70 / 100 + 5);
+                int nb = face ? (b * 94 / 100 + 3) : (b * 78 / 100 + 3);
+                pixels[i] = (a << 24) | (nr << 16) | (ng << 8) | nb;
+            }
+        }
+        return Image.createRGBImage(pixels, width, height, true);
+    }
+
+    private static boolean in(int x, int y, int left, int top, int right, int bottom) {
+        return x >= left && x < right && y >= top && y < bottom;
     }
 
     private static String digest(byte[] data, int offset, int length) {

@@ -6,13 +6,28 @@ An unofficial, non-commercial fan project based on [J2ME Loader](https://github.
 
 ## Gothic 3 launch behavior and launcher branding
 
-For the `midlet` flavor, the game now creates its settings automatically on first launch instead of redirecting to the J2ME Loader configuration screen. The initial preset is **480×640 portrait**, 4:3 aspect-preserving fit, centered image, fullscreen, no blurring filter, black-brown letterboxing, numeric + directional virtual controls, FPS counter hidden and screen-awake enabled.
+For the `midlet` flavor, the game now creates its settings automatically on first launch instead of redirecting to the J2ME Loader configuration screen. The initial preset is **480×640 portrait**, 4:3 aspect-preserving fit, centered image, fullscreen, no blurring filter, black-brown letterboxing, dedicated native Gothic control deck, FPS counter hidden and screen-awake enabled.
 
 Existing custom profiles are preserved. Previously untouched 240×320 profiles are migrated once to 480×640; user edits made afterwards are not overwritten. The J2ME Loader settings screen remains available from its normal in-game options for manual adjustments.
 
 The Android application and MIDlet display name are **Gothic 3: The Beginning**. During the build, `tools/generate_game_icons.py` generates standard and adaptive Android launcher icons from the game's own `hd/icon.png` (the Gothic G emblem), replacing the generic J2ME Loader icon.
 
 These settings are implementation defaults, not yet a verified on-device gameplay configuration.
+
+## Native Gothic 3 touch controls (Android)
+
+The standalone `midlet` build now has a **dedicated native control deck below the MIDlet display**, with no overlap over the gameplay image. This is not J2ME Loader's virtual keyboard or editable keyboard layout.
+
+- Fixed, eight-way circular joystick with an inner movable knob, direction indicators and diagonal illumination. Its input uses the original MIDP number-pad directions 1/2/3/4/6/7/8/9, with a dead zone to avoid unintentional movement.
+- Six dedicated touch targets: **ДЕЙСТВИЕ** (5), **ЦЕЛЬ** (*), **СЛОТЫ** (#), **МЕНЮ** (left soft), **НАЗАД** (right soft), **ПАУЗА** (0). The mapping for game-specific actions needs real-device playtesting.
+- Gothic stone-and-bronze design with eased press depth, amber glow and animated spring-return joystick; compact iconography and text labels.
+- Multitouch uses Android pointer IDs, so moving and using an action button simultaneously is supported.
+- Light haptic feedback respects device-level haptic feedback settings. Pressed keys are released on pointer cancel, app pause, leaving gameplay canvas, and Activity destruction.
+- Key repeat starts after a hold delay. Events are injected through the original MIDlet Canvas event queue (not Android key dispatch), preserving game-key handling.
+
+The new control deck is only installed when `BuildConfig.FULL_EMULATOR == false`. Other J2ME Loader flavors retain their original behavior.
+
+**Verification:** unit tests cover the eight-way direction map, dead zone and preset. The GitHub Actions APK build checks compilation; physical Android confirmation of touch latency, layout, menu bindings, joystick movement and haptics is still necessary.
 
 ## Standalone one-game plan
 

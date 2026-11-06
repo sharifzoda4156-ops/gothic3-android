@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
-MIDlet-1: Gothic 3 The Beginning, /icon.png, HG
-MIDlet-Name: Gothic 3 The Beginning
+MIDlet-1: Gothic 3: The Beginning, /icon.png, HG
+MIDlet-Name: Gothic 3: The Beginning
 MIDlet-Vendor: Handy-Games
 MIDlet-Version: 15.0
 MicroEdition-Configuration: CLDC-1.1

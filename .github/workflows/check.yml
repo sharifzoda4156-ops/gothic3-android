@@ -53,6 +53,13 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon --stacktrace :app:assembleMidletDebug
+      - name: Compile mixed synthetic Java 46 and 52 bytecode through D8
+        run: |
+          python3 tools/create_legacy_fixture.py .work/J2ME-Loader/app/libs/synthetic-legacy.jar
+          javap -verbose -classpath .work/J2ME-Loader/app/libs/synthetic-legacy.jar SyntheticOld SyntheticModern | grep 'major version:'
+          sed -i '/^dependencies {/a\    implementation files("libs/synthetic-legacy.jar")' .work/J2ME-Loader/app/build.gradle
+          cd .work/J2ME-Loader
+          ./gradlew --no-daemon --stacktrace :app:assembleMidletDebug
       - name: Upload sample-only APK
         if: success()
         uses: actions/upload-artifact@v4

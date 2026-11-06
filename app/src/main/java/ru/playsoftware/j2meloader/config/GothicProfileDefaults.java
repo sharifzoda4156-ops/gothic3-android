@@ -50,7 +50,7 @@ public final class GothicProfileDefaults {
         if (firstRun) {
             applied.edit().putBoolean(PROFILE_PRESET_APPLIED, true).apply();
         }
-        applyAndroidUiDefaults(context, applied);
+        prepareUiPreferences(context);
         return true;
     }
 
@@ -82,7 +82,8 @@ public final class GothicProfileDefaults {
         profile.fontAA = true;
     }
 
-    private static void applyAndroidUiDefaults(Context context, SharedPreferences applied) {
+    public static void prepareUiPreferences(Context context) {
+        SharedPreferences applied = context.getSharedPreferences(SETTINGS_PREFS, Context.MODE_PRIVATE);
         if (applied.getBoolean(UI_PRESET_APPLIED, false)) {
             return;
         }

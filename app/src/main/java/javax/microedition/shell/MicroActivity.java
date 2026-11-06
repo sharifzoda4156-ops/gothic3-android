@@ -93,6 +93,7 @@ import io.reactivex.disposables.Disposable;
 import ru.playsoftware.j2meloader.BuildConfig;
 import ru.playsoftware.j2meloader.R;
 import ru.playsoftware.j2meloader.config.Config;
+import ru.playsoftware.j2meloader.config.GothicProfileDefaults;
 import ru.playsoftware.j2meloader.databinding.ActivityMicroBinding;
 import ru.playsoftware.j2meloader.util.Constants;
 import ru.playsoftware.j2meloader.util.LogUtils;
@@ -123,6 +124,9 @@ public class MicroActivity extends AppCompatActivity {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		if (!BuildConfig.FULL_EMULATOR) {
+			GothicProfileDefaults.prepareUiPreferences(this);
+		}
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 		if (sp.getBoolean(PREF_BLACK_BACKGROUND, false)) {
 			getTheme().applyStyle(R.style.ThemeOverlay_App_Dark, true);
@@ -185,8 +189,17 @@ public class MicroActivity extends AppCompatActivity {
 		MidletSystem.setProperty("com.nokia.mid.cmdline.instance", "1");
 		microLoader = new MicroLoader(this, appPath);
 		if (!microLoader.init()) {
-			Config.startApp(this, appName, appPath, true, arguments);
-			finish();
+			if (BuildConfig.FULL_EMULATOR) {
+				Config.startApp(this, appName, appPath, true, arguments);
+				finish();
+			} else {
+				new AlertDialog.Builder(this)
+						.setTitle(R.string.error)
+						.setMessage("Gothic 3 profile initialization failed. Check available storage and try again.")
+						.setPositiveButton(android.R.string.ok, (d, w) -> finish())
+						.setCancelable(false)
+						.show();
+			}
 			return;
 		}
 		microLoader.applyConfiguration();

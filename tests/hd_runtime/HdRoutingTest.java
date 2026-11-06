@@ -37,6 +37,21 @@ public class HdRoutingTest {
             count++;
         }
         byte[] hero = Files.readAllBytes(resources.resolve("105.png"));
+        int variants = 0;
+        java.lang.reflect.Method load = HdVar.class.getDeclaredMethod("load", String.class, int.class, int.class);
+        load.setAccessible(true);
+        try (java.util.stream.Stream<Path> files = Files.list(resources.resolve("hd"))) {
+            for (Path file : files.filter(p -> p.getFileName().toString().matches("[0-9]+_t[0-9]+\\.png"))
+                    .toArray(Path[]::new)) {
+                String name = file.getFileName().toString();
+                String base = name.substring(0, name.indexOf('_')) + ".png";
+                BufferedImage original = ImageIO.read(resources.resolve(base).toFile());
+                String expected = "/hd/" + name;
+                Image variant = (Image) load.invoke(null, expected, original.getWidth() * 2, original.getHeight() * 2);
+                check(variant != null && expected.equals(Image.lastPath), "variant path: " + name);
+                variants++;
+            }
+        }
         byte[] padded = new byte[hero.length + 17];
         System.arraycopy(hero, 0, padded, 7, hero.length);
         HeroHD.cb(padded, 7, hero.length);
@@ -67,7 +82,8 @@ public class HdRoutingTest {
             GothicAssets.bytes(hero, 1, Integer.MAX_VALUE);
             throw new AssertionError("overflowing range was accepted");
         } catch (IndexOutOfBoundsException expected) { }
-        System.out.println("Passed " + count + " PNGs through named, bytes and model routes; "
+        System.out.println("Passed " + count + " PNGs through named, bytes and model routes and "
+                + variants + " equipment/NPC variant PNGs through HdVar.load; "
                 + "offset, relative path, missing/wrong-size HD, unknown PNG and range tests passed");
     }
 }

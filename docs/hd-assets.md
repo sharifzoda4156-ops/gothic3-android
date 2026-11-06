@@ -67,6 +67,7 @@ The JVM test runs the **actual patched game JAR**, using a desktop PNG decoder
 in place of Android's `Image` implementation. Every original PNG is exercised
 through named, byte-buffer, and model-part routes. Tests also cover a nonzero
 buffer offset, missing and wrong-size HD, unindexed PNGs, and invalid ranges.
+All 21 NPC/equipment variant PNGs also pass through the patched `HdVar.load`.
 
 CI checks the assembled APK itself: all 280 HD PNGs must equal the checkout,
 the index must match packaged originals, and the three actual DEX methods must

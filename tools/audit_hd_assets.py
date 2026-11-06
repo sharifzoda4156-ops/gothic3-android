@@ -4,6 +4,7 @@ No image conversion: inspect PNG IHDR and SHA-256 only.
 """
 import argparse
 import hashlib
+import re
 import struct
 import zipfile
 from pathlib import Path
@@ -37,6 +38,12 @@ def index_for(read, names):
             raise ValueError('Ambiguous source PNG: ' + name)
         digests.add(digest)
         lines.append(f'{digest}\t/{name}\t{width}\t{height}')
+    for name in names:
+        variant = re.fullmatch(r'hd/(\d+)_t\d+\.png', name)
+        if variant:
+            width, height = dimensions(read(variant[1] + '.png'))
+            if dimensions(read(name)) != (width * 2, height * 2):
+                raise ValueError('Wrong variant dimensions: ' + name)
     return '\n'.join(lines) + '\n'
 
 

@@ -75,7 +75,7 @@ public final class GothicProfileDefaults {
         profile.fpsLimit = 0;              // No artificial FPS cap
         profile.graphicsMode = 1;          // Upstream default; stable graphics mode
         profile.touchInput = true;
-        profile.showKeyboard = true;
+        profile.showKeyboard = false;  // Gothic has its own independent native control deck
         profile.vkType = 3;                // NUM_ARR: numeric buttons + directional pad
         profile.vkAlpha = 112;
         profile.vkFeedback = true;

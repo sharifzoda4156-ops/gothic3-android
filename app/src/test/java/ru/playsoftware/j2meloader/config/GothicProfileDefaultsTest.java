@@ -19,7 +19,7 @@ public class GothicProfileDefaultsTest {
         assertTrue(profile.screenKeepAspectRatio);
         assertFalse(profile.screenFilter);
         assertTrue(profile.forceFullscreen);
-        assertTrue(profile.showKeyboard);
+        assertFalse(profile.showKeyboard);
         assertEquals(3, profile.vkType);
         assertTrue(profile.touchInput);
         assertEquals(0, profile.fpsLimit);

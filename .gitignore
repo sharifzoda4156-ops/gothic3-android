@@ -1,0 +1,17 @@
+# Build outputs and caches
+build/
+**/build/
+.cxx/
+**/.cxx/
+.gradle/
+local.properties
+*.apk
+*.dex
+.work/
+__pycache__/
+.pytest_cache/
+
+# Allow wrapper and game library jars
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+!app/libs/*.jar

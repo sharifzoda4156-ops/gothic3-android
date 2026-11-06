@@ -464,7 +464,7 @@ public final class GothicControlsView extends View {
             float normalized;
             if (i >= MENU) {
                 normalized = (distanceX * distanceX) / (radius * radius * 1.3f) +
-                        (distanceY * distanceY) / ((radius * .62f) * (radius * .62f));
+                        (distanceY * distanceY) / ((radius * .96f) * (radius * .96f));
             } else {
                 normalized = (distanceX * distanceX + distanceY * distanceY) / (radius * radius);
             }

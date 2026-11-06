@@ -47,7 +47,12 @@ jobs:
           if [ -z "$SDK_MANAGER" ]; then echo 'sdkmanager missing' >&2; exit 1; fi
           echo "Using $SDK_MANAGER"
           yes | "$SDK_MANAGER" --licenses > /dev/null || true
-          "$SDK_MANAGER" --install 'platforms;android-37' 'build-tools;37.0.0' 'ndk;29.0.14206865'
+          "$SDK_MANAGER" --install 'platforms;android-36' 'build-tools;36.0.0' 'ndk;29.0.14206865'
+      - name: Compatibility override for missing API 37
+        working-directory: .work/J2ME-Loader
+        run: |
+          sed -i 's/COMPILE_SDK = 37/COMPILE_SDK = 36/' build.gradle
+          grep 'COMPILE_SDK = 36' build.gradle
       - name: Assemble clean upstream midlet sample
         working-directory: .work/J2ME-Loader
         run: |

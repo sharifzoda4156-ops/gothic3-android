@@ -39,12 +39,15 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Setup Android sdkmanager
-        uses: android-actions/setup-android@v3
       - name: Install pinned Android platform and NDK
         run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager 'platforms;android-37' 'build-tools;37.0.0' 'ndk;29.0.14206865'
+          set -euo pipefail
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDK_MANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)
+          if [ -z "$SDK_MANAGER" ]; then echo 'sdkmanager missing' >&2; exit 1; fi
+          echo "Using $SDK_MANAGER"
+          yes | "$SDK_MANAGER" --licenses > /dev/null || true
+          "$SDK_MANAGER" --install 'platforms;android-37' 'build-tools;37.0.0' 'ndk;29.0.14206865'
       - name: Assemble clean upstream midlet sample
         working-directory: .work/J2ME-Loader
         run: |

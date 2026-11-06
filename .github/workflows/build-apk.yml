@@ -25,8 +25,14 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Run Unit Tests
+      - name: Install icon generator
+        run: python3 -m pip install 'Pillow==11.3.0'
+
+      - name: Verify standalone launcher icon and scripts
         run: python3 -m unittest discover -s tests -v
+
+      - name: Generate Gothic-branded Android launcher icons
+        run: python3 tools/generate_game_icons.py
 
       - name: Setup JDK 21
         uses: actions/setup-java@v4
@@ -46,6 +52,9 @@ jobs:
 
       - name: Make Gradlew Executable
         run: chmod +x gradlew
+
+      - name: Test Gothic profile defaults
+        run: ./gradlew :app:testMidletDebugUnitTest --stacktrace
 
       - name: Assemble Midlet Debug APK
         run: ./gradlew :app:assembleMidletDebug --stacktrace

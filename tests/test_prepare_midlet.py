@@ -44,7 +44,8 @@ class TestPreparation(unittest.TestCase):
         self.assertEqual(result["midlet_class"], "HG")
         manifest = (self.upstream /
             "app/src/midlet/resources/MIDLET-META-INF/MANIFEST.MF").read_text()
-        self.assertIn("MIDlet-1: Gothic 3 The Beginning, /icon.png, HG", manifest)
+        self.assertIn("MIDlet-1: Gothic 3: The Beginning, /icon.png, HG", manifest)
+        self.assertIn("MIDlet-Name: Gothic 3: The Beginning", manifest)
         self.assertEqual((self.upstream / "app/src/midlet/resources/005.png").read_bytes(), b"fake")
         with zipfile.ZipFile(self.upstream / "app/libs/gothic3-classes.jar") as z:
             self.assertEqual(z.namelist(), ["HG.class"])

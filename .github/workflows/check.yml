@@ -1,0 +1,23 @@
+name: Validate standalone-port preparation
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-converter:
+    name: Synthetic JAR tests (no proprietary game / no APK)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test safe conversion
+        run: python3 -m unittest discover -s tests -v

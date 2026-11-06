@@ -60,8 +60,8 @@ def prepare(game: Path, checkout: Path):
                 key, value = line.split(":", 1)
                 props[key.strip()] = value.strip()
         props["Manifest-Version"] = props.get("Manifest-Version", "1.0")
-        props["MIDlet-1"] = "Gothic 3 The Beginning, " + fields[1] + ", " + midlet_class
-        props["MIDlet-Name"] = "Gothic 3 The Beginning"
+        props["MIDlet-1"] = "Gothic 3: The Beginning, " + fields[1] + ", " + midlet_class
+        props["MIDlet-Name"] = "Gothic 3: The Beginning"
         props.setdefault("MIDlet-Version", "1.0")
         props.setdefault("MIDlet-Vendor", "Handy-Games")
         props.setdefault("MicroEdition-Configuration", "CLDC-1.1")

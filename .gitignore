@@ -1,0 +1,9 @@
+# Protect private game binaries and generated Android outputs
+*.jar
+*.jad
+*.apk
+*.dex
+*.class
+.work/
+__pycache__/
+.pytest_cache/

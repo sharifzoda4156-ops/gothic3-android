@@ -150,8 +150,13 @@ public final class GothicControlsView extends View {
         buttonX[SLOTS] = w * 0.64f;
         buttonY[SLOTS] = h * 0.86f;
         buttonRadius[SLOTS] = Math.min(w * 0.069f, h * 0.138f);
-        for (int index = MENU; index <= PAUSE; index++) {
-            buttonX[index] = w * (0.55f + (index - MENU) * 0.17f);
+        // Familiar navigation order, left to right: Back | Pause | Menu.
+        // Assign actual button identities to these positions so touch targets,
+        // captions and MIDP key mappings always move together.
+        final int[] topRow = {BACK, PAUSE, MENU};
+        for (int slot = 0; slot < topRow.length; slot++) {
+            int index = topRow[slot];
+            buttonX[index] = w * (0.55f + slot * 0.17f);
             buttonY[index] = h * 0.15f;
             buttonRadius[index] = Math.min(w * 0.073f, h * 0.12f);
         }

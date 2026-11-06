@@ -51,6 +51,14 @@ The audit checks doubled PNG dimensions and reports class-file versions. Correct
 
 GitHub Actions independently builds a clean *HelloMidlet sample* from pinned J2ME Loader. This proves only upstream compilation; it is not an APK with the Gothic game.
 
+## Android smoke test (after a private APK build)
+
+Connect and authorize an Android phone with USB debugging enabled, then execute:
+
+    bash tools/android_smoke.sh /path/to/Gothic3-debug.apk
+
+The script installs and launches the debug package, then captures a screenshot and logcat locally under `.work/`. This test is **not** automated gameplay validation; inspect controls, sound, save files and HD scenes manually.
+
 ## Attribution
 
 J2ME Loader remains subject to its upstream Apache-2.0 license and notices. No commercial game art, code, or music is licensed for distribution through this project.

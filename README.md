@@ -1,64 +1,53 @@
-# Gothic 3: The Beginning — Android fan port
+# Gothic 3: The Beginning — standalone Android fan port
 
-**Status: source-side prototype. No Android APK has been compiled or tested yet.**
+An unofficial, non-commercial Gothic 3: The Beginning Android port built on the J2ME Loader midlet flavor (upstream Apache-2.0). Original game assets and trademarks belong to their respective rights holders.
 
-An unofficial, non-commercial fan project based on [J2ME Loader](https://github.com/nikita36078/J2ME-Loader), licensed under Apache-2.0. Gothic and the original game materials belong to their respective rights holders. The public repository has no game files.
+## Build status and sources
 
-## Standalone one-game plan
+GitHub Actions compiles a game-bearing APK directly from this repository, runs source/JVM/HD audits, and verifies the resulting APK. **A green build is not a substitute for on-device gameplay acceptance.**
 
-J2ME Loader already supports an Android product flavor named **midlet**, which launches one Java ME MIDlet without the general-purpose app picker. The helper scripts take a private Gothic game JAR and prepare the required layout inside a source checkout of J2ME Loader:
+**Important:** the current public Git history contains game code and images. Verify redistribution rights and use a private repository for any material you cannot distribute. Simply deleting files in a later commit does not delete them from history.
 
-- Java classes become a Gradle dependency: app/libs/gothic3-classes.jar.
-- Game assets become Java resources: app/src/midlet/resources/.
-- Game manifest becomes: app/src/midlet/resources/MIDLET-META-INF/MANIFEST.MF.
-- Package ID is set to org.gothic3.fanport.
+## What's included in the Android midlet flavor
 
-This is NOT the earlier HD patch. HD renderer support and 4x art remain separate work and are not claimed as implemented.
+- Gothic-specific first-launch profile created automatically; the J2ME Loader settings wizard does not interrupt the game launch.
+- Stored profile defaults: 480×640 portrait, aspect-preserving scaling, fullscreen, Gothic backdrop, no stock emulator keyboard, keep screen awake.
+- **HD×3 rendering preserved:** the 240×320 game world uses a 720×960 internal virtual display, irrespective of the stored 480×640 profile defaults. This is intentional for the latest HD×3 renderer; it is not an Android physical display resolution request.
+- Dedicated Gothic stone-and-bronze controls below the game, not overlapping the MIDlet canvas: fixed eight-direction joystick, action (5), target (*), slots (#), left/right soft keys and pause (0).
+- Top-row buttons ordered **Назад | Пауза | Меню**. Multitouch, held-key repeats, animated feedback and gentle device haptics.
+- Android name **Gothic 3: The Beginning** and branded launcher from `app/src/midlet/resources/hd/icon.png`. Generated at build time.
+- Canonical HD asset resolver, 3× character/world drawing and the most recently merged HD assets remain in `main`-based builds.
 
-## Local private Android build
+## Build the current project (never clone unmodified J2ME Loader for final APKs)
 
-Requirements: Git, Python 3, Bash, JDK 21, Android SDK platform `platforms;android-37.0` (compileSdk 37), Android NDK 29.0.14206865, and the normal Gradle dependencies.
+Requirements: JDK 21, Android SDK `platforms;android-37.0`, build-tools 37.0.0, NDK 29.0.14206865, Python 3 + `Pillow==11.3.0`, and Gradle dependencies.
 
-Install the pinned Android SDK packages with `sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0' 'ndk;29.0.14206865'`.
+Install Pillow: `python3 -m pip install Pillow==11.3.0` (Windows: `python -m pip install Pillow==11.3.0`).
 
-From the root of this repository, execute:
+From this repository's root:
 
-    bash tools/build_local.sh /absolute/path/to/your/Gothic3-test.jar
+- Linux/macOS/WSL: `bash tools/build_local.sh`
+- Windows PowerShell: `.\tools\build_local.ps1`
 
-This pins J2ME Loader to commit 261c216c017e77391774ca10748c1229884cecd2, prepares the game classes and resources, then runs:
+**Do not supply the original private game JAR to these ordinary build commands.** The checked-in tree already contains current game and HD×3 components. Using the old script that clones vanilla J2ME Loader, or preparing an older JAR over current files, loses the custom native keyboard and game enhancements.
 
-    ./gradlew :app:assembleMidletDebug
+The resulting Android APK is under `app/build/outputs/apk/midlet/debug/`; CI uploads it as the `Gothic_3_The_Beginning_HD_APK` artifact. Use `tools/prepare_midlet.py` *explicitly and only for intentional game payload replacement*, after preserving the current HD payload.
 
-If successful, the APK will be inside .work/J2ME-Loader/app/build/outputs/apk/midlet/debug/.
+## Verification
 
-**Never commit or upload the private Gothic JAR, game classes, extracted resources or APK to this public repository.** The GitHub Action runs synthetic conversion tests and a separate **sample-only** Android build. It never includes proprietary Gothic game classes or assets.
+```bash
+python3 -m unittest discover -s tests -v
+python3 tools/audit_hd_assets.py
+python3 tools/test_hd_routing.py
+python3 tools/generate_game_icons.py
+./gradlew :app:testMidletDebugUnitTest :app:assembleMidletDebug
+python3 tools/verify_standalone_apk.py --apk app/build/outputs/apk/midlet/debug/NAME-debug.apk
+```
 
-## Tests and remaining unknowns
+The APK verifier checks compiled DEX for the native controls, Gothic profile and HD×3 renderer, rather than merely assuming that source code is present. CI also checks the Android application label and game resource assets.
 
-Run the converter tests:
-
-    python3 -m unittest discover -s tests -v
-
-The actual APK build has NOT been run. Legacy Java 1.2 bytecode compatibility with D8 still needs to be checked, and the Android Java-resource lookup must be checked on-device. Acceptance requires a real game launch with a working title screen, 005.png atlas, controls, sound, RMS saves, transitions, screenshots, and logcat.
-
-## Static HD atlas audit
-
-The privately supplied test JAR has a 2x HD atlas directory. Verify geometry offline, without publishing game assets:
-
-    python3 tools/audit_hd_jar.py /absolute/path/to/your/Gothic3-test.jar
-
-The audit checks doubled PNG dimensions and reports class-file versions. Correct 2x dimensions do not prove that the engine paints at HD resolution.
-
-GitHub Actions independently builds a clean *HelloMidlet sample* from pinned J2ME Loader. This proves only upstream compilation; it is not an APK with the Gothic game.
-
-## Android smoke test (after a private APK build)
-
-Connect and authorize an Android phone with USB debugging enabled, then execute:
-
-    bash tools/android_smoke.sh /path/to/Gothic3-debug.apk
-
-The script installs and launches the debug package, then captures a screenshot and logcat locally under `.work/`. This test is **not** automated gameplay validation; inspect controls, sound, save files and HD scenes manually.
+Use `tools/android_smoke.sh /path/to/Gothic3-debug.apk` for manual Android ADB acceptance. Test first launch, combat, joystick and simultaneous touch, pause/back/menu, HD graphics, sound, saves, and runtime logs before merging changes.
 
 ## Attribution
 
-J2ME Loader remains subject to its upstream Apache-2.0 license and notices. No commercial game art, code, or music is licensed for distribution through this project.
+J2ME Loader remains subject to upstream Apache-2.0 licensing. Original Gothic game media are not licensed through this project.

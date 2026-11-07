@@ -1,6 +1,6 @@
 # Experimental 3x output and complete hero frames
 
-Based on main 0000c640. Separate Android package org.gothic3.fanport.whole3x and separate saves. No art regenerated. No gameplay or model data modified.
+Engine-only integration, based on commit 1d62919 (before any generated hero art). Normal Android applicationId org.gothic3.fanport and normal saves. No generated character artwork or animation manifest is shipped. No game simulation or model data modified.
 
 The standalone canvas is 720x960, aspect-fit within the device area. Hd.cw/ch and c.sizeChanged divide by 3, retaining a 240x320 world. Drawing, text, clips and mutable terrain buffers use 3x output coordinates. Existing /hd art remains 2x; density metadata distinguishes 3x mutable buffers from 2x sprites. This avoids converting 2x assets to fake 3x detail. Existing text atlas is similarly scaled at rendering. The menu's existing rendering coordinates are updated to the same density.
 
@@ -10,7 +10,7 @@ An optional /hd/whole/hero/SLOT_FRAME_SET_LAYOUT_APPEARANCE9_APPEARANCE10.png su
 
 Local checks: original five Python tests, HD inventory, strict JVM loading of all 259 PNGs via three paths and 21 variants. Synthetic raster tests compare whole-frame drawing with layered drawing including alpha, mirroring, camera movement and 3x mutable buffer dimensions. They use a desktop raster backend, not an Android performance measurement. Runtime c.d model execution and all real animation states still need on-device verification.
 
-Limitations: framebuffer pixel count is 2.25x the 2x build, plus a bounded hero cache. Higher resolution does not invent detail in existing 2x art. Final device resizing can resample pixels. Portrait aspect ratio is preserved; 3x does not make the hero larger relative to the world. Actual device performance, terrain scrolling, all attacks/casts/equipment, UI and save/load require acceptance before merging.
+Limitations: framebuffer pixel count is 2.25x the 2x build, plus a bounded hero cache. Higher resolution does not invent detail in existing 2x art. Final device resizing can resample pixels. Portrait aspect ratio is preserved; 3x does not make the hero larger relative to the world. Device performance, terrain scrolling, all attacks/casts/equipment, UI and save/load still require practical device regression checks. The engine is installed without replacement hero artwork, so existing HD hero layers remain the visible default.
 
 ## Free-form character animation packs
 
@@ -41,3 +41,7 @@ frontIdle.mirror=false
 ```
 
 Appearance values in this example are placeholders; use the actual player's packed appearance. This example is deliberately not installed as an active pack. The source sheet dimensions must match the frame grid exactly. Clip durations and sheet bounds are validated, each sheet is limited to 4 million pixels before decoding, and decoded sheets share a 24 MiB LRU budget. Invalid/missing clips log a warning and fall back to the existing hero. Artwork for the new pack is not complete yet.
+
+## Artwork isolation
+
+The generated full-character hero pose/animation sheets (idle, walk, punch, cast) are intentionally excluded from this branch. They remain exclusively in `experiment/whole-hero-3x` (draft PR #9) for visual refinement and phone acceptance; do not merge them with this engine. Missing `animation.properties` is supported and leaves the legacy hero renderer active.

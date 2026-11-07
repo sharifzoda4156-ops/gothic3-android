@@ -47,8 +47,11 @@ def tone(im, tint, darken):
 
 
 def frame(pose, bob, tail, tilt, rect, orig2x):
+    return fit_img(rig.render(pose, bob, tail, tilt), rect, orig2x)
+
+
+def fit_img(img, rect, orig2x):
     x, y, w, h = rect
-    img = rig.render(pose, bob, tail, tilt)
     bb = img.getchannel('A').point(lambda v: 255 if v > THR else 0).getbbox()
     img = img.crop(bb)
     oa = np.asarray(orig2x)[y:y + h, x:x + w, 3]

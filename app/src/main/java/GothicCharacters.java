@@ -24,7 +24,8 @@ public final class GothicCharacters {
         render(entity,g,parts);
     }
     static void render(int[] entity,Graphics g,ArrayList<Part> parts){
-        if(parts.isEmpty())return;
+        // A null sentinel means capture switched to direct rendering for an unsupported part.
+        if(parts.isEmpty()||parts.get(0)==null)return;
         int x=Integer.MAX_VALUE,y=Integer.MAX_VALUE,right=Integer.MIN_VALUE,bottom=Integer.MIN_VALUE;
         for(Part p:parts){x=Math.min(x,p.dx);y=Math.min(y,p.dy);right=Math.max(right,p.dx+p.w);bottom=Math.max(bottom,p.dy+p.h);}
         if(right<=x||bottom<=y||right-x>256||bottom-y>256){for(Part p:parts)p.draw(g);return;}
@@ -56,8 +57,20 @@ public final class GothicCharacters {
         try { if(id instanceof Integer&&entity!=null&&entity.length>11)selected=HdVar.pick((Integer)id,entity,image); }
         catch (RuntimeException badVariant) { selected=image; }
         ArrayList<Part> parts=capture.get();
-        if(parts==null){GothicResolution.region(g,selected,sx,sy,w,h,transform,dx,dy,anchor);return;}
-        if(anchor!=20||(transform!=0&&transform!=2))throw new IllegalArgumentException("Unsupported model transform");
+        if(parts==null||(!parts.isEmpty()&&parts.get(0)==null)){
+            GothicResolution.region(g,selected,sx,sy,w,h,transform,dx,dy,anchor);
+            return;
+        }
+        if(anchor!=20||(transform!=0&&transform!=2)){
+            // Preserve the original draw order and avoid re-running game code.
+            // Flush any queued layers, then draw this and all following layers directly.
+            for(Part part:parts)part.draw(g);
+            parts.clear();
+            parts.add(null); // pass-through marker; render() must not composite it
+            Log.w("GothicHD","Unsupported hero part; using legacy renderer");
+            GothicResolution.region(g,selected,sx,sy,w,h,transform,dx,dy,anchor);
+            return;
+        }
         parts.add(new Part(selected,sx,sy,w,h,transform,dx,dy));
     }
     static final class Part{

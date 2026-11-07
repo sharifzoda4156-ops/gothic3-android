@@ -39,7 +39,9 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.text.method.DigitsKeyListener;
 import android.util.TypedValue;
+import android.util.SparseArray;
 import android.view.KeyEvent;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -49,6 +51,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -93,6 +96,8 @@ import io.reactivex.disposables.Disposable;
 import ru.playsoftware.j2meloader.BuildConfig;
 import ru.playsoftware.j2meloader.R;
 import ru.playsoftware.j2meloader.config.Config;
+import ru.playsoftware.j2meloader.config.GothicProfileDefaults;
+import javax.microedition.shell.gothic.GothicControlsView;
 import ru.playsoftware.j2meloader.databinding.ActivityMicroBinding;
 import ru.playsoftware.j2meloader.util.Constants;
 import ru.playsoftware.j2meloader.util.LogUtils;
@@ -118,11 +123,16 @@ public class MicroActivity extends AppCompatActivity {
 	private int toolbarHeight;
 	private int menuKey;
 	private String appPath;
+	private GothicControlsView gothicControls;
+	private final SparseArray<Canvas> gothicHeldKeys = new SparseArray<>();
 
 	public ActivityMicroBinding binding;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		if (!BuildConfig.FULL_EMULATOR) {
+			GothicProfileDefaults.prepareUiPreferences(this);
+		}
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 		if (sp.getBoolean(PREF_BLACK_BACKGROUND, false)) {
 			getTheme().applyStyle(R.style.ThemeOverlay_App_Dark, true);
@@ -135,6 +145,9 @@ public class MicroActivity extends AppCompatActivity {
 		binding = ActivityMicroBinding.inflate(getLayoutInflater());
 		View view = binding.getRoot();
 		setContentView(view);
+		if (!BuildConfig.FULL_EMULATOR) {
+			installGothicControls();
+		}
 		setSupportActionBar(binding.toolbar);
 
 		actionBarEnabled = sp.getBoolean(PREF_TOOLBAR, false);
@@ -185,11 +198,24 @@ public class MicroActivity extends AppCompatActivity {
 		MidletSystem.setProperty("com.nokia.mid.cmdline.instance", "1");
 		microLoader = new MicroLoader(this, appPath);
 		if (!microLoader.init()) {
-			Config.startApp(this, appName, appPath, true, arguments);
-			finish();
+			if (BuildConfig.FULL_EMULATOR) {
+				Config.startApp(this, appName, appPath, true, arguments);
+				finish();
+			} else {
+				new AlertDialog.Builder(this)
+						.setTitle(R.string.error)
+						.setMessage("Gothic 3 profile initialization failed. Check available storage and try again.")
+						.setPositiveButton(android.R.string.ok, (d, w) -> finish())
+						.setCancelable(false)
+						.show();
+			}
 			return;
 		}
 		microLoader.applyConfiguration();
+		if (!BuildConfig.FULL_EMULATOR) {
+			// The Gothic Android panel owns input; never show J2ME Loader's virtual keyboard.
+			ContextHolder.setVk(null);
+		}
 		VirtualKeyboard vk = ContextHolder.getVk();
 		int orientation = microLoader.getOrientation();
 		if (vk != null) {
@@ -212,6 +238,63 @@ public class MicroActivity extends AppCompatActivity {
 		}
 	}
 
+
+    /**
+     * Install an independent native Android control deck below the MIDlet surface.
+     * Both game display and J2ME overlay are shortened; controls never cover gameplay.
+     */
+    private void installGothicControls() {
+        int panelHeight = GothicControlsView.recommendedHeight(this);
+        FrameLayout.LayoutParams game = (FrameLayout.LayoutParams)
+                binding.virtualDisplay.getLayoutParams();
+        game.bottomMargin = panelHeight;
+        binding.virtualDisplay.setLayoutParams(game);
+
+        FrameLayout.LayoutParams gameOverlay = (FrameLayout.LayoutParams)
+                binding.overlayView.getLayoutParams();
+        gameOverlay.bottomMargin = panelHeight;
+        binding.overlayView.setLayoutParams(gameOverlay);
+
+        gothicControls = new GothicControlsView(this);
+        gothicControls.setControlsActive(false);
+        gothicControls.setKeyListener(new GothicControlsView.KeyListener() {
+            @Override
+            public void onPressed(int code) {
+                pressGothicKey(code);
+            }
+
+            @Override
+            public void onRepeated(int code) {
+                Canvas target = gothicHeldKeys.get(code);
+                if (target != null) target.postKeyRepeated(code);
+            }
+
+            @Override
+            public void onReleased(int code) {
+                releaseGothicKey(code);
+            }
+        });
+
+        FrameLayout.LayoutParams controls = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, panelHeight, Gravity.BOTTOM);
+        binding.midletFrame.addView(gothicControls, controls);
+    }
+
+    private void pressGothicKey(int code) {
+        if (!(current instanceof Canvas) || gothicHeldKeys.get(code) != null) return;
+        Canvas target = (Canvas) current;
+        gothicHeldKeys.put(code, target);
+        target.postKeyPressed(code);
+    }
+
+    private void releaseGothicKey(int code) {
+        Canvas target = gothicHeldKeys.get(code);
+        if (target != null) {
+            gothicHeldKeys.remove(code);
+            target.postKeyReleased(code);
+        }
+    }
+
 	public void lockNightMode() {
 		int current = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
 		if (current == Configuration.UI_MODE_NIGHT_YES) {
@@ -232,6 +315,7 @@ public class MicroActivity extends AppCompatActivity {
 
 	@Override
 	public void onPause() {
+		if (gothicControls != null) gothicControls.cancelInputs();
 		hideSoftInput();
 		if (!pauseSuppressed && !pauseDisabled) {
 			visible = false;
@@ -741,6 +825,9 @@ public class MicroActivity extends AppCompatActivity {
 		@Override
 		public void process() {
 			closeOptionsMenu();
+			if (gothicControls != null) {
+				gothicControls.setControlsActive(next instanceof Canvas);
+			}
 			if (current != null) {
 				current.clearDisplayableView();
 			}
@@ -782,6 +869,10 @@ public class MicroActivity extends AppCompatActivity {
 
 	@Override
 	protected void onDestroy() {
+		if (gothicControls != null) {
+			gothicControls.cancelInputs();
+			gothicControls.setKeyListener(null);
+		}
 		binding = null;
 		super.onDestroy();
 	}

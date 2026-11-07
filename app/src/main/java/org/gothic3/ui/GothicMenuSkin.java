@@ -17,7 +17,7 @@ public final class GothicMenuSkin {
     private static void surface(Graphics g, int x, int y, int w, int h, boolean outer) {
         if (w <= 0 || h <= 0) return;
         int saved = g.getColor();
-        x *= 2; y *= 2; w *= 2; h *= 2;
+        x *= 3; y *= 3; w *= 3; h *= 3;
         // Quiet horizontal grain; text always remains the strongest element.
         for (int row = 0; row < h; row += 2) {
             int shade = ((row * 13 + row / 7) & 3);
@@ -32,7 +32,7 @@ public final class GothicMenuSkin {
     public static void selection(Graphics g, int x, int y, int w, int h) {
         if (w <= 0 || h <= 0) return;
         int saved = g.getColor();
-        x *= 2; y *= 2; w *= 2; h *= 2;
+        x *= 3; y *= 3; w *= 3; h *= 3;
         for (int row = 0; row < h; row++) {
             int glow = (h - Math.abs(2 * row - h)) * 23 / Math.max(1, h);
             g.setColor(52 + glow, 19 + glow / 3, 17 + glow / 4);

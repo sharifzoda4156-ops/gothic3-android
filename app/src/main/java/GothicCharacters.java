@@ -43,6 +43,11 @@ public final class GothicCharacters {
                 canvas.restoreToCount(save);
             }
             frame=new Image(bitmap);whole.put(key.toString(),frame);
+            // Diagnostic (once per new composed pose): which numbered sheets build this hero frame.
+            // Read with: adb logcat -s GothicHD:I
+            StringBuilder ids=new StringBuilder();
+            for(Part p:parts){Object id=HdVar.partOf.get(p.image);ids.append(id instanceof Integer?String.valueOf(id):"?").append('@').append(p.image.getWidth()).append('x').append(p.image.getHeight()).append(' ');}
+            Log.i("GothicHD","hero pose slot_frame_set_layout="+state+" app="+entity[9]+"/"+entity[10]+" sheets="+ids.toString().trim());
         }
         // A replacement uses the exact composite bounds, 3 pixels per world pixel.
         // Include equipment/appearance in filename to avoid applying art to another loadout.

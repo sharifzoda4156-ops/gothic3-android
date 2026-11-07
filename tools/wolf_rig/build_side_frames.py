@@ -65,12 +65,25 @@ def fit_img(img, rect, orig2x):
     return out
 
 
+def load_fitted():
+    import json
+    fp = 'tools/wolf_rig/fitted_poses.json'
+    if not os.path.exists(fp):
+        return {}
+    return json.load(open(fp))['side']
+
+
 def main():
     cache = {}
+    fitted = load_fitted()
     for n, frames in POSES.items():
         o = Image.open(R + n + '.png').convert('RGBA')
         orig2x = o.resize((o.width * 2, o.height * 2), Image.NEAREST)
         for k, (rect, pose, bob, tail, tilt) in frames.items():
+            f = fitted.get(f'{n}:{k}')
+            if f:
+                pose = {q: f[q] for q in ('fn', 'ff', 'bn', 'bf')}
+                bob, tail, tilt = f['bob'], f['tail'], f['tilt']
             cache[(n, k)] = (rect, frame(pose, bob, tail, tilt, rect, orig2x))
     for n in POSES:
         for suf in SUFFIXES:

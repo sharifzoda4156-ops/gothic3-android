@@ -37,7 +37,7 @@ def render(pose, bob=0, tail=0, tilt=0):
     c = Image.new('RGBA', (SZ[0] + 600, SZ[1] + 300), (0, 0, 0, 0))
     ox, oy = 300, 150
     def put(im, dy=0):
-        c.alpha_composite(im, (ox, oy + dy))
+        c.alpha_composite(im, (ox, oy + int(round(dy))))
     put(rot(L['tail'], 'tail', tail), bob)
     put(rot(L['back_far'], 'back_far', pose['bf']), 0)
     put(rot(L['front_far'], 'front_far', pose['ff']), 0)

@@ -55,7 +55,7 @@ def leg(layer, top, dy, sc):
     f = np.clip(np.arange(h)[:, None] / 40.0, 0, 1)
     crop.putalpha(Image.fromarray((a * f).astype(np.uint8)))
     out = Image.new('RGBA', layer.size, (0, 0, 0, 0))
-    out.alpha_composite(crop, (bb[0], bb[1] + dy))
+    out.alpha_composite(crop, (bb[0], bb[1] + int(round(dy))))
     return out
 
 
@@ -63,9 +63,9 @@ def render(view, dyL=0, scL=1.0, dyR=0, scR=1.0, bob=0, rot=0, grow=1.0):
     base, legs, _ = PARTS[view]
     c = Image.new('RGBA', (SZ[0] + 200, SZ[1] + 300), (0, 0, 0, 0))
     ox, oy = 100, 150
-    c.alpha_composite(base, (ox, oy + bob))
+    c.alpha_composite(base, (ox, oy + int(round(bob))))
     for k, (dy, sc) in (('L', (dyL, scL)), ('R', (dyR, scR))):
-        c.alpha_composite(leg(legs[k], TOP, dy, sc), (ox, oy + bob))
+        c.alpha_composite(leg(legs[k], TOP, dy, sc), (ox, oy + int(round(bob))))
     if rot:
         c = c.rotate(rot, resample=Image.BICUBIC, center=(ox + 450, oy + 900))
     if grow != 1.0:
@@ -103,12 +103,16 @@ PLAN = {
 
 
 def main():
+    import json, os
+    fp = 'tools/wolf_rig/fitted_poses.json'
+    fitted = json.load(open(fp))['fb'] if os.path.exists(fp) else {}
     cache = {}
     for n, frames in PLAN.items():
         o = Image.open(R + n + '.png').convert('RGBA')
         o2 = o.resize((o.width * 2, o.height * 2), Image.NEAREST)
         for k, (view, kw) in frames.items():
             rect = RECTS[n][k]
+            kw = fitted.get(f'{n}:{k}', kw)
             cache[(n, k)] = (rect, B.fit_img(render(view, **kw), rect, o2))
     for n in PLAN:
         for suf in B.SUFFIXES:

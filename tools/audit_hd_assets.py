@@ -143,7 +143,7 @@ def main():
     if args.apk:
         audit_apk(args.apk)
         return
-    names = {str(p.relative_to(RESOURCES)) for p in RESOURCES.rglob('*') if p.is_file()}
+    names = {p.relative_to(RESOURCES).as_posix() for p in RESOURCES.rglob('*') if p.is_file()}
     expected = index_for(lambda n: (RESOURCES / n).read_bytes(), names)
     index = RESOURCES / 'hd/source-index.tsv'
     if args.write_index:

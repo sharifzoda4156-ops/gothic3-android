@@ -41,3 +41,11 @@ frontIdle.mirror=false
 ```
 
 Appearance values in this example are placeholders; use the actual player's packed appearance. This example is deliberately not installed as an active pack. The source sheet dimensions must match the frame grid exactly. Clip durations and sheet bounds are validated, each sheet is limited to 4 million pixels before decoding, and decoded sheets share a 24 MiB LRU budget. Invalid/missing clips log a warning and fall back to the existing hero. Artwork for the new pack is not complete yet.
+
+## Installed approved artwork (core pack)
+
+The pack now contains 16 aligned PNG sheets / 52 drawings and 28 selectors: unarmed set 0 idle/walk/punch (slots 0–11) and magic set 3 idle/walk/cast (slots 0–15), layout zero. Direction slots follow the actual model table: 0 back, 1 right, 2 front, 3 left. Appearance words explicitly accept `*` for these complete fixed-costume illustrations; more specific selectors take priority. Weapons/equipment sets 1/2/4/5 and hurt/falling/death retain the legacy renderer and artwork. This is a core animation pack, not complete replacement of all hero states.
+
+The approved turnaround, walk, punch and casting illustrations were cut into cells, resized with preserved aspect ratio, and aligned using the boot/ground region. Cells are 320×320 source pixels, displayed in a 40×40 logical box; the visible body is approximately 29 logical pixels tall, with foot pivot (20,38). Larger cell margins accommodate extended arms and strides without shrinking the body. Most source detail is necessarily reduced at the 3x display size. The punch sheet's generated light background was removed before packing. No source PNG, model, game class or gameplay timing was changed by this art integration.
+
+`tools/build_hero_animation_pack.py SOURCE_DIR` rebuilds the pack from `idle.png`, `walk.png`, `punch.png`, `cast.png` (requires Pillow/numpy). Source SHA-256 values and output hashes are recorded in `inventory.json`. The input drawings are preserved in the user's Library. These generated poses have not been accepted as smooth animation on a phone; framing, direction, timing, camera anchoring, combat, casting and transitions back to legacy weapon/fall artwork need device testing. The new pack adds approximately 21 MiB of decoded RGBA sheets when all sheets are resident; its texture cache remains bounded to 24 MiB.

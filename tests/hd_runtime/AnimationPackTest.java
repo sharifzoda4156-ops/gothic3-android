@@ -13,6 +13,17 @@ public class AnimationPackTest {
   int[] red=new int[16*12];java.util.Arrays.fill(red,0xffff0000);Image atlas=Image.createRGBImage(red,16,12,true),out=Image.createImage(90,90);
   GothicAnimation.paintFrame(out.getGraphics(),clip,atlas,0,10,20);
   int[] pixel=new int[1];out.getRGB(pixel,0,1,24,42,1,1);check(pixel[0]==0xffff0000,"custom dimensions and feet anchor");out.getRGB(pixel,0,1,24,60,1,1);check(pixel[0]==0,"must end at foot position");
-  System.out.println("Animation packs: timing, pause, action restart, independent dimensions, pivot and unsafe manifest rejection passed");
+  java.lang.reflect.Method load=GothicAnimation.class.getDeclaredMethod("load");load.setAccessible(true);load.invoke(null);
+  int selectors=0;java.util.Set<String> sheets=new java.util.HashSet<>();
+  for(int set:new int[]{0,3})for(int slot=0;slot<(set==0?12:16);slot++){
+   GothicAnimation.Clip active=GothicAnimation.select(set,slot,0,12345,-67890);
+   check(active!=null,"installed pack selector "+set+":"+slot);
+   Image texture=active.image();check(texture.getWidth()==active.columns*active.frameWidth,"actual texture columns");
+   check(active.pivotY==38&&active.height==40,"stable foot anchor");sheets.add(active.sheet);selectors++;
+  }
+  check(selectors==28&&sheets.size()==16,"full installed core pack coverage");
+  check(GothicAnimation.select(1,8,0,0,0)==null,"weapon attacks must retain their actual weapons");
+  check(GothicAnimation.select(0,16,0,0,0)==null,"falling keeps genuine old pose");
+  System.out.println("Animation packs: timing, pause, action restart, independent dimensions, pivot and unsafe manifest rejection and all 28 installed selectors/16 PNG sheets passed");
  }
 }

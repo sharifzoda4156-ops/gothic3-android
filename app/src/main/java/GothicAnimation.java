@@ -34,7 +34,7 @@ public final class GothicAnimation {
             for(String key:p.stringPropertyNames())if(key.endsWith(".sheet")){
                 String prefix=key.substring(0,key.length()-6);
                 Clip clip=Clip.read(p,prefix);
-                String selector=clip.set+":"+clip.slot+":"+clip.layout+":"+clip.appearance9+":"+clip.appearance10;
+                String selector=clip.set+":"+clip.slot+":"+clip.layout+":"+(clip.any9?"*":clip.appearance9)+":"+(clip.any10?"*":clip.appearance10);
                 if(ready.put(selector,clip)!=null)throw new IOException("Duplicate animation selector "+selector);
             }
             if(ready.size()>128)throw new IOException("Too many clips");
@@ -44,7 +44,7 @@ public final class GothicAnimation {
     public static boolean draw(int[] e,Graphics g){
         load();if(clips.isEmpty())return false;
         int set=e[8]&65535,slot=e[6]&65535,layout=(e[8]>>>16)&65535;
-        Clip clip=clips.get(set+":"+slot+":"+layout+":"+e[9]+":"+e[10]);
+        Clip clip=select(set,slot,layout,e[9],e[10]);
         if(clip==null){playback.remove(e);return false;}
         try{
             int tick=(short)(e[6]>>>16);
@@ -61,6 +61,14 @@ public final class GothicAnimation {
             clips.values().removeIf(value->value==clip);playback.remove(e);
             Log.w("GothicHD","Animation clip disabled: "+bad.getMessage());return false;
         }
+    }
+    static Clip select(int set,int slot,int layout,int appearance9,int appearance10){
+        String prefix=set+":"+slot+":"+layout+":";
+        for(int mask=0;mask<4;mask++){
+            Clip clip=clips.get(prefix+((mask&1)!=0?"*":appearance9)+":"+((mask&2)!=0?"*":appearance10));
+            if(clip!=null)return clip;
+        }
+        return null;
     }
     static void paintFrame(Graphics g,Clip clip,Image image,int frame,float x,float y){
         int col=frame%clip.columns,row=frame/clip.columns;
@@ -97,7 +105,7 @@ public final class GothicAnimation {
     }
     static final class Clip{
         String sheet;int set,slot,layout,appearance9,appearance10,frameWidth,frameHeight,columns,total;
-        float width,height,pivotX,pivotY;boolean loop,mirror;int[] durations;
+        float width,height,pivotX,pivotY;boolean loop,mirror,any9,any10;int[] durations;
         static int number(Properties p,String key,int lo,int hi)throws IOException{
             int n=Integer.parseInt(required(p,key));if(n<lo||n>hi)throw new IOException("Out of range "+key);return n;
         }
@@ -109,7 +117,9 @@ public final class GothicAnimation {
             c.sheet=required(p,k+"sheet");
             if(!c.sheet.matches("[A-Za-z0-9_-]+\\.png"))throw new IOException("Unsafe sheet path");
             c.set=number(p,k+"set",0,5);c.slot=number(p,k+"slot",0,16);c.layout=number(p,k+"layout",0,3);
-            c.appearance9=number(p,k+"appearance9",Integer.MIN_VALUE,Integer.MAX_VALUE);c.appearance10=number(p,k+"appearance10",Integer.MIN_VALUE,Integer.MAX_VALUE);
+            c.any9="*".equals(required(p,k+"appearance9"));c.any10="*".equals(required(p,k+"appearance10"));
+            if(!c.any9)c.appearance9=number(p,k+"appearance9",Integer.MIN_VALUE,Integer.MAX_VALUE);
+            if(!c.any10)c.appearance10=number(p,k+"appearance10",Integer.MIN_VALUE,Integer.MAX_VALUE);
             c.frameWidth=number(p,k+"frameWidth",1,2048);c.frameHeight=number(p,k+"frameHeight",1,2048);c.columns=number(p,k+"columns",1,128);
             c.width=decimal(p,k+"width",1,256);c.height=decimal(p,k+"height",1,256);c.pivotX=decimal(p,k+"pivotX",-256,512);c.pivotY=decimal(p,k+"pivotY",-256,512);
             c.loop=bool(p,k+"loop");c.mirror=bool(p,k+"mirror");

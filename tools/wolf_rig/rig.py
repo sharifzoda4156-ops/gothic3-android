@@ -33,7 +33,7 @@ def rot(layer, key, ang):
     return layer.rotate(-ang, resample=Image.BICUBIC, center=PIV[key])
 
 
-def render(pose, bob=0, tail=0):
+def render(pose, bob=0, tail=0, tilt=0):
     c = Image.new('RGBA', (SZ[0] + 600, SZ[1] + 300), (0, 0, 0, 0))
     ox, oy = 300, 150
     def put(im, dy=0):
@@ -44,4 +44,6 @@ def render(pose, bob=0, tail=0):
     put(body, bob)
     put(rot(L['back_near'], 'back_near', pose['bn']), 0)
     put(rot(L['front_near'], 'front_near', pose['fn']), 0)
+    if tilt:
+        c = c.rotate(tilt, resample=Image.BICUBIC, center=(ox + 800, oy + 500))
     return c

@@ -30,7 +30,7 @@ class GothicIntegrationTests(unittest.TestCase):
 
     def test_top_row_and_midp_bindings(self):
         controls = (ROOT / "app/src/main/java/javax/microedition/shell/gothic/GothicControlsView.java").read_text()
-        self.assertIn("final int[] topRow = {BACK, PAUSE, MENU};", controls)
+        self.assertIn("final int[] topRow = {MENU, PAUSE, BACK};", controls)
         self.assertIn("KEY_CODES = {'5', '*', '#', -6, -7, '0'}", controls)
 
     def test_builds_use_checked_out_game_not_unmodified_emulator(self):

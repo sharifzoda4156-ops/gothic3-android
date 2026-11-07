@@ -12,6 +12,9 @@ public class Image {
     public static String rejectPath;
     public static String wrongSizePath;
     private final BufferedImage image;
+    public Image(android.graphics.Bitmap bitmap) { this.image = bitmap.image; }
+    public android.graphics.Bitmap getBitmap() { return new android.graphics.Bitmap(image); }
+    public Graphics getGraphics() { return new Graphics(this); }
     private Image(BufferedImage image) { this.image = image; }
     public static Image createImage(String name) throws IOException {
         lastPath = name;

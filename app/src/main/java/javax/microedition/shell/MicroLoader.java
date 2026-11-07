@@ -267,10 +267,13 @@ public class MicroLoader {
 
 			int screenWidth = params.screenWidth;
 			int screenHeight = params.screenHeight;
+			// Experimental Gothic build: keep the world 240x320 at 3x output density.
+			if (!BuildConfig.FULL_EMULATOR) { screenWidth = 720; screenHeight = 960; }
 			Displayable.setVirtualSize(screenWidth, screenHeight);
 			Canvas.setBackgroundColor(params.screenBackgroundColor);
-			Canvas.setScale(params.screenGravity, params.screenScaleType, params.screenScaleRatio);
-			Canvas.setFilterBitmap(params.screenFilter);
+			Canvas.setScale(params.screenGravity, BuildConfig.FULL_EMULATOR ? params.screenScaleType : 1,
+					BuildConfig.FULL_EMULATOR ? params.screenScaleRatio : 100);
+			Canvas.setFilterBitmap(BuildConfig.FULL_EMULATOR ? params.screenFilter : true);
 			EventQueue.setImmediate(params.immediateMode);
 			Canvas.setGraphicsMode(params.graphicsMode, params.parallelRedrawScreen);
 			ShaderInfo shader = params.shader;

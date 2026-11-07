@@ -1,0 +1,13 @@
+# Experimental 3x output and complete hero frames
+
+Based on main 0000c640. Separate Android package org.gothic3.fanport.whole3x and separate saves. No art regenerated. No gameplay or model data modified.
+
+The standalone canvas is 720x960, aspect-fit within the device area. Hd.cw/ch and c.sizeChanged divide by 3, retaining a 240x320 world. Drawing, text, clips and mutable terrain buffers use 3x output coordinates. Existing /hd art remains 2x; density metadata distinguishes 3x mutable buffers from 2x sprites. This avoids converting 2x assets to fake 3x detail. Existing text atlas is similarly scaled at rendering. The menu's existing rendering coordinates are updated to the same density.
+
+The one c.d(int[],Graphics) call reference in c.class now invokes GothicCharacters.draw. Model zero (confirmed by c.d(O,0)) captures the existing four-layer renderer through HdVar.dp. Selected image, crop, mirror, order and offsets are preserved. Completed transparent frames are bounded to 256 logical pixels in each dimension and kept in a 64-entry LRU. Other models keep the existing renderer. Existing hero sheets are unchanged. The first use composes a pose at the source density; later draws reuse the complete image.
+
+An optional /hd/whole/hero/SLOT_FRAME_SET_LAYOUT_APPEARANCE9_APPEARANCE10.png supplies a painted complete 3x frame. SLOT=entity[6] low 16 bits, FRAME=entity[7] low 16, SET=entity[8] low 16, LAYOUT=entity[8] high 16. The last two numbers are signed decimal packed appearance fields. Its dimensions must be exactly 3x the bounds of the composed logical frame. Missing/invalid frames fall back to the assembled existing art. These are internal numeric selectors, not yet semantic animation labels. No painted replacements are included in this experiment.
+
+Local checks: original five Python tests, HD inventory, strict JVM loading of all 259 PNGs via three paths and 21 variants. Synthetic raster tests compare whole-frame drawing with layered drawing including alpha, mirroring, camera movement and 3x mutable buffer dimensions. They use a desktop raster backend, not an Android performance measurement. Runtime c.d model execution and all real animation states still need on-device verification.
+
+Limitations: framebuffer pixel count is 2.25x the 2x build, plus a bounded hero cache. Higher resolution does not invent detail in existing 2x art. Final device resizing can resample pixels. Portrait aspect ratio is preserved; 3x does not make the hero larger relative to the world. Actual device performance, terrain scrolling, all attacks/casts/equipment, UI and save/load require acceptance before merging.

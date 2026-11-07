@@ -18,7 +18,7 @@ def main():
     with tempfile.TemporaryDirectory() as directory:
         output = Path(directory)
         jar = ROOT / 'app/libs/gothic3-classes.jar'
-        sources = [ROOT / 'app/src/main/java/GothicAssets.java']
+        sources = [ROOT / ('app/src/main/java/' + n + '.java') for n in ('GothicAssets', 'GothicResolution', 'GothicCharacters')]
         sources += sorted((ROOT / 'tests/hd_runtime').rglob('*.java'))
         compiler = ['java', '-jar', str(args.ecj), '-17'] if args.ecj else ['javac', '--release', '17']
         subprocess.run(compiler + ['-classpath', str(jar), '-d', str(output)]
@@ -27,6 +27,7 @@ def main():
         classpath = os.pathsep.join(map(str, (output, jar, resources)))
         subprocess.run(['java', '-Xverify:all', '-Djava.awt.headless=true', '-classpath', classpath,
                         'HdRoutingTest', str(resources)], check=True)
+        subprocess.run(['java', '-Xverify:all', '-Djava.awt.headless=true', '-classpath', classpath, 'WholeHeroTest'], check=True)
 
 
 if __name__ == '__main__':

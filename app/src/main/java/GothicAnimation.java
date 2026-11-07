@@ -26,25 +26,31 @@ public final class GothicAnimation {
     static { paint.setFilterBitmap(true); }
     private static synchronized void load(){
         if(loaded)return;loaded=true;
-        try(InputStream stream=GothicAnimation.class.getResourceAsStream("/hd/characters/hero/animation.properties")){
-            if(stream==null)return;
+        // Hero pack plus optional monster pack; each pack is validated independently.
+        for(String pack:new String[]{"hero","monsters"})try(InputStream stream=GothicAnimation.class.getResourceAsStream("/hd/characters/"+pack+"/animation.properties")){
+            if(stream==null)continue;
             Properties p=new Properties();p.load(stream);
             if(!"1".equals(p.getProperty("version")))throw new IOException("Unsupported animation pack version");
             HashMap<String,Clip> ready=new HashMap<>();
             for(String key:p.stringPropertyNames())if(key.endsWith(".sheet")){
                 String prefix=key.substring(0,key.length()-6);
-                Clip clip=Clip.read(p,prefix);
-                String selector=clip.set+":"+clip.slot+":"+clip.layout+":"+clip.appearance9+":"+clip.appearance10;
-                if(ready.put(selector,clip)!=null)throw new IOException("Duplicate animation selector "+selector);
+                Clip clip=Clip.read(p,prefix,pack);
+                String selector=selector(clip.model,clip.set,clip.slot,clip.layout,clip.appearance9,clip.appearance10);
+                if(ready.put(selector,clip)!=null||clips.containsKey(selector))throw new IOException("Duplicate animation selector "+selector);
             }
             if(ready.size()>128)throw new IOException("Too many clips");
             clips.putAll(ready);
-        }catch(IOException|RuntimeException bad){Log.w("GothicHD","Animation pack disabled: "+bad.getMessage());}
+        }catch(IOException|RuntimeException bad){Log.w("GothicHD","Animation pack "+pack+" disabled: "+bad.getMessage());}
     }
+    static String selector(int model,int set,int slot,int layout,int a9,int a10){return model+":"+set+":"+slot+":"+layout+":"+a9+":"+a10;}
+    private static final java.util.HashSet<String> reported=new java.util.HashSet<>();
     public static boolean draw(int[] e,Graphics g){
         load();if(clips.isEmpty())return false;
-        int set=e[8]&65535,slot=e[6]&65535,layout=(e[8]>>>16)&65535;
-        Clip clip=clips.get(set+":"+slot+":"+layout+":"+e[9]+":"+e[10]);
+        int model=(e[7]>>>16)&65535,set=e[8]&65535,slot=e[6]&65535,layout=(e[8]>>>16)&65535;
+        String sel=selector(model,set,slot,layout,e[9],e[10]);
+        // Non-hero selectors are logged once so wolf/monster clips can be keyed from real play.
+        if(model!=0&&reported.add(sel)&&reported.size()<=512)Log.i("GothicHD","entity selector model:set:slot:layout:a9:a10 = "+sel);
+        Clip clip=clips.get(sel);
         if(clip==null){playback.remove(e);return false;}
         try{
             int tick=(short)(e[6]>>>16);
@@ -96,7 +102,7 @@ public final class GothicAnimation {
         }
     }
     static final class Clip{
-        String sheet;int set,slot,layout,appearance9,appearance10,frameWidth,frameHeight,columns,total;
+        String sheet,pack;int model,set,slot,layout,appearance9,appearance10,frameWidth,frameHeight,columns,total;
         float width,height,pivotX,pivotY;boolean loop,mirror;int[] durations;
         static int number(Properties p,String key,int lo,int hi)throws IOException{
             int n=Integer.parseInt(required(p,key));if(n<lo||n>hi)throw new IOException("Out of range "+key);return n;
@@ -104,8 +110,12 @@ public final class GothicAnimation {
         static String required(Properties p,String key)throws IOException{String v=p.getProperty(key);if(v==null)throw new IOException("Missing "+key);return v.trim();}
         static float decimal(Properties p,String key,float lo,float hi)throws IOException{float f=Float.parseFloat(required(p,key));if(!Float.isFinite(f)||f<lo||f>hi)throw new IOException("Out of range "+key);return f;}
         static boolean bool(Properties p,String key)throws IOException{String v=required(p,key);if(!v.equals("true")&&!v.equals("false"))throw new IOException("Expected boolean "+key);return Boolean.parseBoolean(v);}
-        static Clip read(Properties p,String name)throws IOException{
-            Clip c=new Clip();String k=name+".";
+        static Clip read(Properties p,String name)throws IOException{return read(p,name,"hero");}
+        static Clip read(Properties p,String name,String pack)throws IOException{
+            Clip c=new Clip();String k=name+".";c.pack=pack;
+            c.model=p.getProperty(k+"model")==null?0:number(p,k+"model",0,4096);
+            if("hero".equals(pack)&&c.model!=0)throw new IOException("Hero pack clips must use model 0");
+            if(!"hero".equals(pack)&&c.model==0)throw new IOException("Monster pack clips need a nonzero model");
             c.sheet=required(p,k+"sheet");
             if(!c.sheet.matches("[A-Za-z0-9_-]+\\.png"))throw new IOException("Unsafe sheet path");
             c.set=number(p,k+"set",0,5);c.slot=number(p,k+"slot",0,16);c.layout=number(p,k+"layout",0,3);
@@ -120,9 +130,9 @@ public final class GothicAnimation {
         Image image()throws IOException{
             synchronized(textures){
                 int rows=(durations.length+columns-1)/columns;
-                Image cached=textures.get(sheet);
+                Image cached=textures.get(pack+"/"+sheet);
                 if(cached!=null){if(cached.getWidth()!=columns*frameWidth||cached.getHeight()!=rows*frameHeight)throw new IOException("Inconsistent shared sheet geometry "+sheet);return cached;}
-                String path="/hd/characters/hero/"+sheet;
+                String path="/hd/characters/"+pack+"/"+sheet;
                 try(InputStream raw=GothicAnimation.class.getResourceAsStream(path)){
                     if(raw==null)throw new IOException("Missing "+sheet);
                     DataInputStream header=new DataInputStream(raw);
@@ -136,7 +146,7 @@ public final class GothicAnimation {
                 while(textureBytes+bytes>24*1024*1024L&&oldest.hasNext()){
                     Image old=oldest.next();textureBytes-=(long)old.getWidth()*old.getHeight()*4;oldest.remove();
                 }
-                textures.put(sheet,image);textureBytes+=bytes;return image;
+                textures.put(pack+"/"+sheet,image);textureBytes+=bytes;return image;
             }
         }
     }

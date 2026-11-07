@@ -17,7 +17,12 @@ public final class GothicCharacters {
     };
     public static void draw(int[] entity,Graphics g){
         // Model zero is the player model. Other NPC/model renderers are left alone.
-        if(entity==null||entity.length<12||(entity[3]&4)==0||((entity[7]>>>16)&65535)!=0||capture.get()!=null){c.d(entity,g);return;}
+        if(entity==null||entity.length<12||(entity[3]&4)==0||capture.get()!=null){c.d(entity,g);return;}
+        if(((entity[7]>>>16)&65535)!=0){
+            // Other models keep the legacy renderer unless an optional animation pack claims them.
+            if(GothicAnimation.draw(entity,g))return;
+            c.d(entity,g);return;
+        }
         if(GothicAnimation.draw(entity,g))return;
         ArrayList<Part> parts=new ArrayList<>();capture.set(parts);
         try{c.d(entity,g);}finally{capture.remove();}

@@ -91,9 +91,9 @@ android {
             def props = getMidletManifestProperties()
             def midletName = props.getValue('MIDlet-Name').trim()
             def apkName = midletName.replaceAll('[/\\\\:*?\"<>|]', '').replace(' ', '_')
-            applicationId "org.gothic3.fanport.whole3x"
+            applicationId "org.gothic3.fanport"
             versionName = props.getValue('MIDlet-Version')
-            resValue 'string', 'app_name', midletName + ' 3x TEST'
+            resValue 'string', 'app_name', midletName
             midletArchivesBaseName = apkName
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
                     'proguard-midlet.pro', 'proguard-common.pro'

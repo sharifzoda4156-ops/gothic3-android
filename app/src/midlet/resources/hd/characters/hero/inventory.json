@@ -1,0 +1,276 @@
+{
+  "sources": {
+    "idle": "2208830453e4adeabbe3890dcc437aa03a1998d61fd04256045d54d61747c531",
+    "walk": "eb03c0b99e21914a6af485c0c2b05f78a4505606465c1e441604ec9e1b5ca498",
+    "punch": "f073281587cf48c9cf5743a8b5cb036e552b1f9fcca96536d6a088f11c339fde",
+    "cast": "4b6296485ef792bcec4143c69be769a14ac28790ccaa2a8dd2419b49fb10a993"
+  },
+  "coverage": [
+    {
+      "set": 0,
+      "slot": 0,
+      "action": "idle",
+      "direction": "back"
+    },
+    {
+      "set": 0,
+      "slot": 1,
+      "action": "idle",
+      "direction": "right"
+    },
+    {
+      "set": 0,
+      "slot": 2,
+      "action": "idle",
+      "direction": "front"
+    },
+    {
+      "set": 0,
+      "slot": 3,
+      "action": "idle",
+      "direction": "left"
+    },
+    {
+      "set": 0,
+      "slot": 4,
+      "action": "walk",
+      "direction": "back"
+    },
+    {
+      "set": 0,
+      "slot": 5,
+      "action": "walk",
+      "direction": "right"
+    },
+    {
+      "set": 0,
+      "slot": 6,
+      "action": "walk",
+      "direction": "front"
+    },
+    {
+      "set": 0,
+      "slot": 7,
+      "action": "walk",
+      "direction": "left"
+    },
+    {
+      "set": 0,
+      "slot": 8,
+      "action": "punch",
+      "direction": "back"
+    },
+    {
+      "set": 0,
+      "slot": 9,
+      "action": "punch",
+      "direction": "right"
+    },
+    {
+      "set": 0,
+      "slot": 10,
+      "action": "punch",
+      "direction": "front"
+    },
+    {
+      "set": 0,
+      "slot": 11,
+      "action": "punch",
+      "direction": "left"
+    },
+    {
+      "set": 3,
+      "slot": 0,
+      "action": "idle",
+      "direction": "back"
+    },
+    {
+      "set": 3,
+      "slot": 1,
+      "action": "idle",
+      "direction": "right"
+    },
+    {
+      "set": 3,
+      "slot": 2,
+      "action": "idle",
+      "direction": "front"
+    },
+    {
+      "set": 3,
+      "slot": 3,
+      "action": "idle",
+      "direction": "left"
+    },
+    {
+      "set": 3,
+      "slot": 4,
+      "action": "walk",
+      "direction": "back"
+    },
+    {
+      "set": 3,
+      "slot": 5,
+      "action": "walk",
+      "direction": "right"
+    },
+    {
+      "set": 3,
+      "slot": 6,
+      "action": "walk",
+      "direction": "front"
+    },
+    {
+      "set": 3,
+      "slot": 7,
+      "action": "walk",
+      "direction": "left"
+    },
+    {
+      "set": 3,
+      "slot": 8,
+      "action": "cast",
+      "direction": "back"
+    },
+    {
+      "set": 3,
+      "slot": 9,
+      "action": "cast",
+      "direction": "right"
+    },
+    {
+      "set": 3,
+      "slot": 10,
+      "action": "cast",
+      "direction": "front"
+    },
+    {
+      "set": 3,
+      "slot": 11,
+      "action": "cast",
+      "direction": "left"
+    },
+    {
+      "set": 3,
+      "slot": 12,
+      "action": "cast",
+      "direction": "back"
+    },
+    {
+      "set": 3,
+      "slot": 13,
+      "action": "cast",
+      "direction": "right"
+    },
+    {
+      "set": 3,
+      "slot": 14,
+      "action": "cast",
+      "direction": "front"
+    },
+    {
+      "set": 3,
+      "slot": 15,
+      "action": "cast",
+      "direction": "left"
+    }
+  ],
+  "sheets": {
+    "idle-back.png": {
+      "width": 320,
+      "height": 320,
+      "frames": 1,
+      "sha256": "cea3032a044fe947d812605a1fe374820bf81957b1ed34ba17876151105b0701"
+    },
+    "idle-right.png": {
+      "width": 320,
+      "height": 320,
+      "frames": 1,
+      "sha256": "bab35df804d68715b5bdbae0f2e9f494650e08721d84df22b8d684cb98964c9d"
+    },
+    "idle-front.png": {
+      "width": 320,
+      "height": 320,
+      "frames": 1,
+      "sha256": "0df7d72d239ea17a17063f7261b55a2749d0f12f3d1e353b40f34213ec834941"
+    },
+    "idle-left.png": {
+      "width": 320,
+      "height": 320,
+      "frames": 1,
+      "sha256": "c4e3bd607d745af73e59def24d3253edd6581dd235012003c39a0de1f45533d7"
+    },
+    "walk-back.png": {
+      "width": 1280,
+      "height": 320,
+      "frames": 4,
+      "sha256": "1e43f0127263141c919cb42a6fa2bccff3f7d1917ad2b37766bea094f8d7d73d"
+    },
+    "walk-right.png": {
+      "width": 1280,
+      "height": 320,
+      "frames": 4,
+      "sha256": "23f48d1a66b846bfbe74194f99c5ef643ebc18f0daf35f2c43880f573c647512"
+    },
+    "walk-front.png": {
+      "width": 1280,
+      "height": 320,
+      "frames": 4,
+      "sha256": "b2c7deb44579d0548b1d9fc2cafd0af72e95a430eada90ac00477ee2db51929a"
+    },
+    "walk-left.png": {
+      "width": 1280,
+      "height": 320,
+      "frames": 4,
+      "sha256": "9f52dd2c8b84e2e4e5d7f769c7054b6407d32006d18d9cd3dfdfdbfdeba7b09a"
+    },
+    "punch-back.png": {
+      "width": 1280,
+      "height": 320,
+      "frames": 4,
+      "sha256": "018e1bcee2ff021ce360d50b0062ff5c608fb57a90aa7155626e81ce519a0157"
+    },
+    "punch-right.png": {
+      "width": 1280,
+      "height": 320,
+      "frames": 4,
+      "sha256": "9f33be8ef53fa005034140b9bf65fc2ce79a7c85f55b1bab5d399a57a1743c2b"
+    },
+    "punch-front.png": {
+      "width": 1280,
+      "height": 320,
+      "frames": 4,
+      "sha256": "45fa3e47fd885c6f69b6f17cc3e0619b5da6eec9d7a57bfa0b11253797066bf4"
+    },
+    "punch-left.png": {
+      "width": 1280,
+      "height": 320,
+      "frames": 4,
+      "sha256": "67a06937b24aaf514be702b90491210398a36a20a46f3b9d74e7303b95c888b6"
+    },
+    "cast-back.png": {
+      "width": 1280,
+      "height": 320,
+      "frames": 4,
+      "sha256": "eb11455980048e162158bd50c98a347559f89b443584c9470e363ff64de1598c"
+    },
+    "cast-right.png": {
+      "width": 1280,
+      "height": 320,
+      "frames": 4,
+      "sha256": "9b3a4f7c6852408420f49512cc7d518628c5416d09f6c56e23f4b5e15f82131b"
+    },
+    "cast-front.png": {
+      "width": 1280,
+      "height": 320,
+      "frames": 4,
+      "sha256": "4664038afb4145ae616aff8695ed0fb50e3ed0b9d8030555228dca4478ba4afb"
+    },
+    "cast-left.png": {
+      "width": 1280,
+      "height": 320,
+      "frames": 4,
+      "sha256": "5812b76ecf59df1dd85ffdd09854591c3eba3f5ebf82bcbe77d8e639a67c8f5a"
+    }
+  }
+}

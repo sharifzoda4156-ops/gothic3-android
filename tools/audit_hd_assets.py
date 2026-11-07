@@ -57,6 +57,12 @@ def audit_apk(path):
         for file in (RESOURCES / 'hd').glob('*.png'):
             if apk.read('hd/' + file.name) != file.read_bytes():
                 raise ValueError('APK contains stale HD artwork: ' + file.name)
+        character_dir = RESOURCES / 'hd/characters'
+        for file in character_dir.rglob('*') if character_dir.exists() else []:
+            if file.is_file():
+                packaged = file.relative_to(RESOURCES).as_posix()
+                if packaged not in names or apk.read(packaged) != file.read_bytes():
+                    raise ValueError('Missing/stale whole-character asset: ' + packaged)
         dex = b''.join(apk.read(n) for n in names if n.endswith('.dex'))
         for marker in (b'LGothicAssets;', b'GothicHD', b'/hd/source-index.tsv'):
             if marker not in dex:

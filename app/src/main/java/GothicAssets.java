@@ -76,17 +76,34 @@ public final class GothicAssets {
         if (offset < 0 || length < 0 || offset > data.length - length) {
             throw new IndexOutOfBoundsException("image range");
         }
+        // The byte-image loader is used by game models. Reuse the original
+        // atlas and frame geometry for the hero, NPCs and monsters. Named
+        // resources (terrain, UI and effects) keep their HD replacements.
         Entry entry = BY_DIGEST.get(digest(data, offset, length));
-        if (entry != null) {
-            Image hd = sized("/hd" + entry.name, entry.width * 2, entry.height * 2);
-            if (hd != null) return hd;
-        }
-        report("fallback " + (entry == null ? "unindexed byte image" : entry.name), true);
+        report("original model atlas " + (entry == null ? "unindexed byte image" : entry.name), false);
         return Hd.scale(Image.createImage(data, offset, length));
     }
 
     /** Also used by HdVar for numbered model parts and equipment variants. */
     public static Image sized(String path, int width, int height) {
+        // HdVar.load requests recoloured model variants through this route.
+        // Map them to the original base frame atlas as well: the remastered
+        // variant sheets can have incompatible pose silhouettes/crops.
+        if (path != null && path.matches("/hd/[0-9]+_t[0-9]+\\.png")) {
+            String base = "/" + path.substring(4, path.indexOf("_t")) + ".png";
+            try {
+                Image original = Hd.scale(Image.createImage(base));
+                if (original.getWidth() != width || original.getHeight() != height) {
+                    report("rejected original dimensions " + base, true);
+                    return null;
+                }
+                report("original model variant " + path, false);
+                return original;
+            } catch (IOException e) {
+                report("missing original model " + base, true);
+                return null;
+            }
+        }
         try {
             Image image = Image.createImage(path);
             if (width <= 0 || image.getWidth() != width || image.getHeight() != height) {

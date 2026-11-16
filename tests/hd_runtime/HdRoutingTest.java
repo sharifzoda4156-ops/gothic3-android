@@ -11,6 +11,15 @@ public class HdRoutingTest {
         if (!value) throw new AssertionError(message);
     }
 
+    private static boolean samePixels(Image a, Image b) {
+        if (a.getWidth() != b.getWidth() || a.getHeight() != b.getHeight()) return false;
+        int[] left = new int[a.getWidth() * a.getHeight()];
+        int[] right = new int[b.getWidth() * b.getHeight()];
+        a.getRGB(left, 0, a.getWidth(), 0, 0, a.getWidth(), a.getHeight());
+        b.getRGB(right, 0, b.getWidth(), 0, 0, b.getWidth(), b.getHeight());
+        return java.util.Arrays.equals(left, right);
+    }
+
     public static void main(String[] args) throws Exception {
         Path resources = Path.of(args[0]);
         int count = 0;
@@ -26,14 +35,20 @@ public class HdRoutingTest {
             check(expected.equals(Image.lastPath), "named path: " + original);
             check(named.getWidth() == width && named.getHeight() == height, "named dimensions");
             Image bytes = Hd.cb(data, 0, data.length);
-            check(expected.equals(Image.lastPath), "byte path: " + original);
             check(bytes.getWidth() == width && bytes.getHeight() == height, "byte dimensions");
             // Exercise the real numbered-part route, including the previous <200 gap.
             String stem = original.substring(1, original.length() - 4);
             HdVar.np(stem.matches("[0-9]+") ? Integer.parseInt(stem) : -1);
             Image model = HdVar.cb(data, 0, data.length);
-            check(expected.equals(Image.lastPath), "model path: " + original);
             check(model.getWidth() == width && model.getHeight() == height, "model dimensions");
+            // Original animation atlas pixels must be used for all model loads,
+            // not a replacement HD sprite sheet with incompatible poses.
+            if (original.equals("/105.png") || original.equals("/211.png")
+                    || original.equals("/221.png") || original.equals("/270.png")) {
+                Image reference = Hd.scale(Image.createImage(data, 0, data.length));
+                check(samePixels(bytes, reference), "original byte frames: " + original);
+                check(samePixels(model, reference), "original model frames: " + original);
+            }
             count++;
         }
         byte[] hero = Files.readAllBytes(resources.resolve("105.png"));
@@ -48,19 +63,23 @@ public class HdRoutingTest {
                 BufferedImage original = ImageIO.read(resources.resolve(base).toFile());
                 String expected = "/hd/" + name;
                 Image variant = (Image) load.invoke(null, expected, original.getWidth() * 2, original.getHeight() * 2);
-                check(variant != null && expected.equals(Image.lastPath), "variant path: " + name);
+                check(variant != null && ("/" + base).equals(Image.lastPath),
+                        "original variant source: " + name);
+                Image reference = Hd.scale(Image.createImage("/" + base));
+                check(samePixels(variant, reference), "variant must retain original frame geometry: " + name);
                 variants++;
             }
         }
         byte[] padded = new byte[hero.length + 17];
         System.arraycopy(hero, 0, padded, 7, hero.length);
-        HeroHD.cb(padded, 7, hero.length);
-        check("/hd/105.png".equals(Image.lastPath), "sliced PNG offset");
+        Image sliced = HeroHD.cb(padded, 7, hero.length);
+        check(samePixels(sliced, Hd.scale(Image.createImage(hero, 0, hero.length))),
+                "sliced PNG offset uses original frames");
         Hd.ci("101.png");
         check("/hd/101.png".equals(Image.lastPath), "relative named path");
 
         Image.rejectPath = "/hd/105.png";
-        Image fallback = HeroHD.cb(hero, 0, hero.length);
+        Image fallback = Hd.ci("/105.png");
         check(fallback.getWidth() == 168 && fallback.getHeight() == 120, "missing HD fallback scale");
         check(Log.messages.contains("fallback /105.png"), "fallback must be visible");
         Image.rejectPath = null;
@@ -77,13 +96,13 @@ public class HdRoutingTest {
         byte[] unindexed = stream.toByteArray();
         fallback = Hd.cb(unindexed, 0, unindexed.length);
         check(fallback.getWidth() == 6 && fallback.getHeight() == 10, "unknown PNG fallback");
-        check(Log.messages.contains("fallback unindexed byte image"), "unknown image warning");
+        check(Log.messages.contains("original model atlas unindexed byte image"),
+                "unknown byte-image route must retain original frames");
         try {
             GothicAssets.bytes(hero, 1, Integer.MAX_VALUE);
             throw new AssertionError("overflowing range was accepted");
         } catch (IndexOutOfBoundsException expected) { }
-        System.out.println("Passed " + count + " PNGs through named, bytes and model routes and "
-                + variants + " equipment/NPC variant PNGs through HdVar.load; "
-                + "offset, relative path, missing/wrong-size HD, unknown PNG and range tests passed");
+        System.out.println("Passed " + count + " HD named PNGs and original byte/model frame layouts, "
+                + variants + " original model variants; source pixels, slicing, fallback and range checks passed");
     }
 }
